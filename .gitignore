@@ -1,0 +1,12 @@
+# Default ignored files
+/shelf/
+/.idea
+# Editor-based HTTP Client requests
+/httpRequests/
+/dictionaries/joche.xml
+/FoundryMacros.iml
+/modules.xml
+/.idea/dictionaries/joche.xml
+/.idea/FoundryMacros.iml
+/.idea/modules.xml
+/.idea/workspace.xml
