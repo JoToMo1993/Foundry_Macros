@@ -605,7 +605,7 @@ const popupTemplate = `
       </select>
     </td>
   </tr>
-  <tr>
+  <tr style="visibility: ${game.settings.get('weather_macro', 'location') !== 'Moderate' ? 'hidden' : 'visible'}">
     <td><label for='season'>Season</label></td>
     <td>
       <select name='season' id='season' ${game.settings.get('weather_macro', 'location') !== 'Moderate' ? 'disabled' : ''}>
@@ -644,6 +644,8 @@ const popupTemplate = `
 <script>
 document.getElementById("location").onchange = function () {
     document.getElementById("season").disabled = document.getElementById("location").value !== "Moderate";
+    document.getElementById("season").parentElement.parentElement.style.visibility
+        = document.getElementById("location").value !== "Moderate" ? "hidden" : "visible";
 }
 document.getElementById("test").onchange = function () {
     // toggle test-mode
