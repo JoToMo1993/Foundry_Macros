@@ -205,7 +205,7 @@ await game.settings.register('checks', 'dc', {
     requiresReload: false,
 });
 const DataTagByType = {
-    "skill": (value) => `data-skill="${value}`,
+    "skill": (value) => `data-skill="${value}"`,
     "save": (ignored) => ``,
     "check": (ignored) => ``,
     "tool": (value) => `data-tool="${value}"`,

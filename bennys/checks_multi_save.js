@@ -196,7 +196,7 @@ await game.settings.register('checks_multi_save', 'check-name', {
 });
 
 const DataTagByType = {
-    "skill": (value) => `data-skill="${value}`,
+    "skill": (value) => `data-skill="${value}"`,
     "save": (ignored) => ``,
     "check": (ignored) => ``,
     "tool": (value) => `data-tool="${value}"`,
