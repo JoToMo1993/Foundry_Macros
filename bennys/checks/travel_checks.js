@@ -24,6 +24,11 @@ function printCheck(dc) {
     let message =
         `
             <div class="dnd5e2 chat-card request-card">
+                <header class="summary">
+                    <div class="name-stacked border">
+                        <span class="title">Navigation Check</span>
+                    </div>
+                </header>
                 <!-- Survival Button -->
                 <div class="card-buttons">
                     <button
