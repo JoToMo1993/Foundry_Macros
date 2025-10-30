@@ -9,7 +9,8 @@ const ToolIconHtml = '<i class="fas fa-hammer"></i>';
 // Coding begins here, please do not change.
 //-------------------------------------------------------------------------------------
 
-await game.settings.register('travel_checks', 'dc', {
+const MacroName = 'travel_checks';
+await game.settings.register(MacroName, 'dc', {
     name: 'DC',
     hint: 'Stores the dc entered previously',
     scope: 'client',
@@ -20,7 +21,7 @@ await game.settings.register('travel_checks', 'dc', {
     requiresReload: false,
 });
 
-function printCheck(dc) {
+function printCheck(formdata) {
     let message =
         `
             <div class="dnd5e2 chat-card request-card">
@@ -35,13 +36,13 @@ function printCheck(dc) {
                         data-type="skill"
                         data-format="long"
                         data-skill="sur"
-                        ${dc !== '' ? `data-dc="${dc}"` : ''}
+                        ${formdata.dc !== '' ? `data-dc="${formdata.dc}"` : ''}
                         data-ability="wis"
                         data-action="rollRequest"
                         data-visibility="all">
                         <span class="visible-dc">
                             ${IconHtml}
-                            ${dc !== '' ? `DC ${dc} ` : ''}Wisdom (Survival)
+                            ${formdata.dc !== '' ? `DC ${formdata.dc} ` : ''}Wisdom (Survival)
                         </span>
                         <span class="hidden-dc">
                             ${IconHtml}
@@ -55,13 +56,13 @@ function printCheck(dc) {
                         data-type="tool"
                         data-format="long"
                         data-tool="navg"
-                        ${dc !== '' ? `data-dc="${dc}"` : ''}
+                        ${dc !== '' ? `data-dc="${formdata.dc}"` : ''}
                         data-ability="wis"
                         data-action="rollRequest"
                         data-visibility="all">
                         <span class="visible-dc">
                             ${ToolIconHtml}
-                            ${dc !== '' ? `DC ${dc} ` : ''}Wisdom (Navigator’s Tools)
+                            ${formdata.dc !== '' ? `DC ${formdata.dc} ` : ''}Wisdom (Navigator’s Tools)
                         </span>
                         <span class="hidden-dc">
                             ${ToolIconHtml}
@@ -83,39 +84,46 @@ function printCheck(dc) {
 }
 
 const popupTemplate = `
-<table>
+<table style="margin: 0">
   <tr>
     <td><label for='dc'>DC</label></td>
-    <td><input type='number' id='dc' value='${game.settings.get('travel_checks', 'dc')}'></td>
+    <td><input type='number' id='dc' value='${game.settings.get(MacroName, 'dc')}'></td>
   </tr>
 </table>
 `;
 
-async function dialogSubmit() {
-    let dc = document.getElementById("dc").value;
+async function action(button, callback) {
+    const form = button.form.elements
+    const formData = {};
 
-    // Save to local storage
-    await game.settings.set('travel_checks', 'dc', dc);
+    for (const [key, input] of Object.entries(form)) {
+        // not a numbered index
+        if (!/^\d+$/.test(key)) {
+            formData[key] = input.value;
+            // Save to local storage
+            await game.settings.set(MacroName, key, input.value);
+        }
+    }
 
-    printCheck(dc);
+    callback(formData);
 }
 
-let d = new Dialog({
-    title: 'Navigation Check',
+let d = new foundry.applications.api.DialogV2({
+    window: {title: 'Navigation Check'},
     content: popupTemplate,
-    buttons: {
-        ok: {
-            icon: '<i class="fas fa-check"></i>',
-            label: "Do it!",
-            callback: dialogSubmit
-        },
-        cancel: {
-            icon: '<i class="fas fa-times"></i>',
-            label: "Never mind",
-            callback: () => {
-            }
-        }
-    },
-    default: "ok",
+    buttons: [{
+        action: 'ok',
+        icon: '<i class="fas fa-check"></i>',
+        label: "Do it!",
+        default: true,
+        callback: (_, button, __) => action(button, printCheck)
+    }, {
+        action: 'cancel',
+        icon: '<i class="fas fa-times"></i>',
+        label: "Never mind",
+    }],
+    submit: () => {
+        /* ignored */
+    }
 });
 d.render(true);
