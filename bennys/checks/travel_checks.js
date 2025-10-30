@@ -92,6 +92,8 @@ const popupTemplate = `
 </table>
 `;
 
+const IgnoreSavingIds = []
+
 async function action(button, callback) {
     const form = button.form.elements
     const formData = {};
@@ -99,9 +101,16 @@ async function action(button, callback) {
     for (const [key, input] of Object.entries(form)) {
         // not a numbered index
         if (!/^\d+$/.test(key)) {
-            formData[key] = input.value;
-            // Save to local storage
-            await game.settings.set(MacroName, key, input.value);
+            let val;
+            if (input.tagName !== 'CHECKBOX') {
+                val = input.value;
+            } else {
+                val = input.checked
+            }
+            formData[key] = val;
+            if (!IgnoreSavingIds.includes(key)) {
+                await game.settings.set(MacroName, key, input.value);
+            }
         }
     }
 

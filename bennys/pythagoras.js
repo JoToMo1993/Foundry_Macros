@@ -7,7 +7,8 @@
 // Coding begins here, please do not change.
 //-------------------------------------------------------------------------------------
 
-await game.settings.register('pythagoras_macro', 'speed', {
+const MacroName = 'pythagoras_macro';
+await game.settings.register(MacroName, 'speed', {
     name: 'Restbewegung',
     hint: 'Stores the remaining movement in feet',
     scope: 'client',
@@ -22,7 +23,7 @@ await game.settings.register('pythagoras_macro', 'speed', {
     filePicker: false,
     requiresReload: false,
 });
-await game.settings.register('pythagoras_macro', 'x', {
+await game.settings.register(MacroName, 'x', {
     name: 'X Distance',
     hint: 'Stores the x distance to the target in feet',
     scope: 'client',
@@ -37,7 +38,7 @@ await game.settings.register('pythagoras_macro', 'x', {
     filePicker: false,
     requiresReload: false,
 });
-await game.settings.register('pythagoras_macro', 'y', {
+await game.settings.register(MacroName, 'y', {
     name: 'Y Distance',
     hint: 'Stores the y distance to the target in feet',
     scope: 'client',
@@ -52,7 +53,7 @@ await game.settings.register('pythagoras_macro', 'y', {
     filePicker: false,
     requiresReload: false,
 });
-await game.settings.register('pythagoras_macro', 'z', {
+await game.settings.register(MacroName, 'z', {
     name: 'Z Distance',
     hint: 'Stores the z distance to the target in feet',
     scope: 'client',
@@ -76,7 +77,7 @@ const popupTemplate = `<div>
             <label for="speed">Restbewegung (Fuß)</label>
           </td>
           <td>
-            <input id="speed" type="number" value='${game.settings.get('pythagoras_macro', 'speed')}' min='1' max='99' step="1" />
+            <input id="speed" type="number" value='${game.settings.get(MacroName, 'speed')}' min='1' max='99' step="1" />
           </td>
         </tr>
         <tr>
@@ -84,7 +85,7 @@ const popupTemplate = `<div>
             <label for="x">Horizontal zum Ziel (Fuß)</label>
           </td>
           <td>
-            <input id="x" type="number" value='${game.settings.get('pythagoras_macro', 'x')}' min='1' max='99' step="1" />
+            <input id="x" type="number" value='${game.settings.get(MacroName, 'x')}' min='1' max='99' step="1" />
           </td>
         </tr>
         <tr>
@@ -92,7 +93,7 @@ const popupTemplate = `<div>
             <label for="y">Vertical zum Ziel (Fuß)</label>
           </td>
           <td>
-            <input id="y" type="number" value='${game.settings.get('pythagoras_macro', 'y')}' min='1' max='99' step="1" />
+            <input id="y" type="number" value='${game.settings.get(MacroName, 'y')}' min='1' max='99' step="1" />
           </td>
         </tr>
         <tr>
@@ -100,37 +101,23 @@ const popupTemplate = `<div>
             <label for="z">Höhenunterschied (Fuß)</label>
           </td>
           <td>
-            <input id="z" type="number" value='${game.settings.get('pythagoras_macro', 'z')}' min='1' max='99' step="1" />
+            <input id="z" type="number" value='${game.settings.get(MacroName, 'z')}' min='1' max='99' step="1" />
           </td>
         </tr>
       </tbody>
     </table>
 </div>`;
 
-let inputDialog = new Dialog({
-    title: 'Pythagoras',
-    content: popupTemplate,
-    buttons: {
-        ok: {
-            icon: '<i class="fas fa-check"></i>',
-            label: "Berechne",
-            callback: dialogPythagorasSubmit
-        },
-    },
-    default: "ok",
-});
-inputDialog.render(true);
-
-async function dialogPythagorasSubmit() {
-    let speed = document.getElementById("speed").value;
-    let x = document.getElementById("x").value;
-    let y = document.getElementById("y").value;
-    let z = document.getElementById("z").value;
+async function dialogPythagorasSubmit(formdata) {
+    let speed = formdata.speed;
+    let x = formdata.x;
+    let y = formdata.y;
+    let z = formdata.z;
     // Save to local storage
-    await game.settings.set('pythagoras_macro', 'speed', speed);
-    await game.settings.set('pythagoras_macro', 'x', x);
-    await game.settings.set('pythagoras_macro', 'y', y);
-    await game.settings.set('pythagoras_macro', 'z', z);
+    await game.settings.set(MacroName, 'speed', speed);
+    await game.settings.set(MacroName, 'x', x);
+    await game.settings.set(MacroName, 'y', y);
+    await game.settings.set(MacroName, 'z', z);
 
     let totalDistance = Math.sqrt(x * x + y * y + z * z);
     let totalFloor = Math.sqrt(x * x + y * y);
@@ -159,19 +146,19 @@ async function dialogPythagorasSubmit() {
                     <tbody>
                         <tr>
                             <th>Restbewegung (Fuß)</th>
-                            <td>${game.settings.get('pythagoras_macro', 'speed')}</td>
+                            <td>${game.settings.get(MacroName, 'speed')}</td>
                         </tr>
                         <tr>
                             <th>Horizontal zum Ziel (Fuß)</th>
-                            <td>${game.settings.get('pythagoras_macro', 'x')}</td>
+                            <td>${game.settings.get(MacroName, 'x')}</td>
                         </tr>
                         <tr>
                             <th>Vertical zum Ziel (Fuß)</th>
-                            <td>${game.settings.get('pythagoras_macro', 'y')}</td>
+                            <td>${game.settings.get(MacroName, 'y')}</td>
                         </tr>
                         <tr>
                             <th>Höhenunterschied (Fuß)</th>
-                            <td>${game.settings.get('pythagoras_macro', 'z')}</td>
+                            <td>${game.settings.get(MacroName, 'z')}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -216,5 +203,49 @@ async function dialogPythagorasSubmit() {
     };
 
     ChatMessage.create(chatData, {});
-
 }
+
+const IgnoreSavingIds = []
+
+async function action(button, callback) {
+    const form = button.form.elements
+    const formData = {};
+
+    for (const [key, input] of Object.entries(form)) {
+        // not a numbered index
+        if (!/^\d+$/.test(key)) {
+            let val;
+            if (input.tagName !== 'CHECKBOX') {
+                val = input.value;
+            } else {
+                val = input.checked
+            }
+            formData[key] = val;
+            if (!IgnoreSavingIds.includes(key)) {
+                await game.settings.set(MacroName, key, input.value);
+            }
+        }
+    }
+
+    callback(formData);
+}
+
+let d = new foundry.applications.api.DialogV2({
+    window: {title: 'Navigation Check'},
+    content: popupTemplate,
+    buttons: [{
+        action: 'ok',
+        icon: '<i class="fas fa-check"></i>',
+        label: "Do it!",
+        default: true,
+        callback: (_, button, __) => action(button, printCheck)
+    }, {
+        action: 'cancel',
+        icon: '<i class="fas fa-times"></i>',
+        label: "Never mind",
+    }],
+    submit: () => {
+        /* ignored */
+    }
+});
+d.render(true);

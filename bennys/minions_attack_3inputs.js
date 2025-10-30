@@ -1,4 +1,5 @@
-await game.settings.register('minion_attack_macro', 'number_of_minions', {
+const MacroName = 'minion_attack_macro';
+await game.settings.register(MacroName, 'number_of_minions', {
     name: 'Number of Minions',
     hint: 'Stores the number of minions entered previously',
     scope: 'client',
@@ -13,7 +14,7 @@ await game.settings.register('minion_attack_macro', 'number_of_minions', {
     filePicker: false,
     requiresReload: false,
 });
-await game.settings.register('minion_attack_macro', 'damage_formula', {
+await game.settings.register(MacroName, 'damage_formula', {
     name: 'Damage formula',
     hint: 'Stores the damage formula entered previously',
     scope: 'client',
@@ -23,7 +24,7 @@ await game.settings.register('minion_attack_macro', 'damage_formula', {
     filePicker: false,
     requiresReload: false,
 });
-await game.settings.register('minion_attack_macro', 'attack_formula', {
+await game.settings.register(MacroName, 'attack_formula', {
     name: 'Attack formula',
     hint: 'Stores the attack formula entered previously',
     scope: 'client',
@@ -50,7 +51,11 @@ const diceRollSuffix = '</section>';
 const headerPrefix = '<section class="card-header description collapsible">';
 const headerSuffix = '</section>';
 
-function printCheck(number_of_minions, attack_formula, damage_formula) {
+function printCheck(formdata) {
+    let number_of_minions = formdata.number_of_minions;
+    let attack_formula = formdata.attack_formula;
+    let damage_formula = formdata.damage_formula;
+
     let modifiedAttackFormula = attack_formula + '+' + (Number(number_of_minions) - 1);
     let multipliedDamageFormula = multiply(damage_formula, number_of_minions);
 
@@ -158,55 +163,65 @@ const popupTemplate = `
 <table>
   <tr>
     <td><label for='attack_formula'>Basis Angriffsformel</label></td>
-    <td><input type='text' id='attack_formula' value='${game.settings.get('minion_attack_macro', 'attack_formula')}'></td>
+    <td><input type='text' id='attack_formula' value='${game.settings.get(MacroName, 'attack_formula')}'></td>
   </tr>
   <tr>
     <td><label for='damage_formula'>Basis Schadensformel</label></td>
-    <td><input type='text' id='damage_formula' value='${game.settings.get('minion_attack_macro', 'damage_formula')}'></td>
+    <td><input type='text' id='damage_formula' value='${game.settings.get(MacroName, 'damage_formula')}'></td>
   </tr>
   <tr>
     <td><label for='number_of_minions'>Anzahl an Minions</label></td>
-    <td><input type='number' id='number_of_minions' value='${game.settings.get('minion_attack_macro', 'number_of_minions')}' min='1' max='99'></td>
+    <td><input type='number' id='number_of_minions' value='${game.settings.get(MacroName, 'number_of_minions')}' min='1' max='99'></td>
   </tr>
 </table>
 `;
 
-async function dialogSubmit() {
-    let number_of_minions = document.getElementById("number_of_minions").value;
-    let attack_formula = document.getElementById("attack_formula").value;
-    let damage_formula = document.getElementById("damage_formula").value;
-    // Save to local storage
-    await game.settings.set('minion_attack_macro', 'number_of_minions', number_of_minions);
-    await game.settings.set('minion_attack_macro', 'attack_formula', attack_formula);
-    await game.settings.set('minion_attack_macro', 'damage_formula', damage_formula);
+async function action(button, callback) {
+    const form = button.form.elements
+    const formData = {};
 
-    printCheck(number_of_minions, attack_formula, damage_formula);
+    for (const [key, input] of Object.entries(form)) {
+        // not a numbered index
+        if (!/^\d+$/.test(key)) {
+            let val;
+            if (input.tagName !== 'CHECKBOX') {
+                val = input.value;
+            } else {
+                val = input.checked
+            }
+            formData[key] = val;
+            if (!IgnoreSavingIds.includes(key)) {
+                await game.settings.set(MacroName, key, input.value);
+            }
+        }
+    }
+
+    callback(formData);
 }
 
 if (canvas.tokens.controlled.length > 0) {
-    let d = new Dialog({
-        title: 'Number of Minions',
+    let d = new foundry.applications.api.DialogV2({
+        window: {title: 'Number of Minions'},
         content: popupTemplate,
-        buttons: {
-            ok: {
-                icon: '<i class="fas fa-check"></i>',
-                label: "Do it!",
-                callback: dialogSubmit
-            },
-            cancel: {
-                icon: '<i class="fas fa-times"></i>',
-                label: "Never mind",
-                callback: () => {
-                }
-            }
-        },
-        default: "ok",
-        callback: dialogSubmit,
+        buttons: [{
+            action: 'ok',
+            icon: '<i class="fas fa-check"></i>',
+            label: "Do it!",
+            default: true,
+            callback: (_, button, __) => action(button, printCheck)
+        }, {
+            action: 'cancel',
+            icon: '<i class="fas fa-times"></i>',
+            label: "Never mind",
+        }],
+        submit: () => {
+            /* ignored */
+        }
     });
     d.render(true);
 } else {
-    Dialog.prompt({
-        title: 'Fehler',
+    foundry.applications.api.DialogV2.prompt({
+        window: {title: 'Fehler'},
         content: '<div>Du musst erst ein Token auswählen.</div>',
     });
 }

@@ -6,7 +6,8 @@
 // Coding begins here, please do not change.
 //-------------------------------------------------------------------------------------
 
-await game.settings.register('gold', 'level', {
+const MacroName = 'gold';
+await game.settings.register(MacroName, 'level', {
     name: 'Level',
     hint: 'Stores the level entered previously',
     scope: 'client',
@@ -16,7 +17,7 @@ await game.settings.register('gold', 'level', {
     filePicker: false,
     requiresReload: false,
 });
-await game.settings.register('gold', 'count', {
+await game.settings.register(MacroName, 'count', {
     name: 'Count',
     hint: 'Stores the count entered previously',
     scope: 'client',
@@ -83,24 +84,17 @@ const popupTemplate = `
   <tr>
     <td><label for='level'>Level</label></td>
     <td>
-        <input type="number" id="level" value='${game.settings.get('gold', 'level')}'>
+        <input type="number" id="level" value='${game.settings.get(MacroName, 'level')}'>
     </td>
   </tr>
   <tr>
     <td><label for='count'>Anzahl</label></td>
-    <td><input type='number' id='count' value='${game.settings.get('gold', 'count')}'></td>
+    <td><input type='number' id='count' value='${game.settings.get(MacroName, 'count')}'></td>
   </tr>
 </table>
 `;
 
 async function dialogSubmit() {
-    let level = document.getElementById("level").value;
-    let count = document.getElementById("count").value;
-
-    // Save to local storage
-    await game.settings.set('gold', 'level', level);
-    await game.settings.set('gold', 'count', count);
-
     const goldDice = new Roll("10d10");
     const goldRoll = goldDice.roll();
     goldRoll.then(v => {
@@ -110,22 +104,47 @@ async function dialogSubmit() {
     });
 }
 
-let d = new Dialog({
-    title: 'Gold auswürfeln',
-    content: popupTemplate,
-    buttons: {
-        ok: {
-            icon: '<i class="fas fa-check"></i>',
-            label: "Do it!",
-            callback: dialogSubmit
-        },
-        cancel: {
-            icon: '<i class="fas fa-times"></i>',
-            label: "Never mind",
-            callback: () => {
+const IgnoreSavingIds = []
+
+async function action(button, callback) {
+    const form = button.form.elements
+    const formData = {};
+
+    for (const [key, input] of Object.entries(form)) {
+        // not a numbered index
+        if (!/^\d+$/.test(key)) {
+            let val;
+            if (input.tagName !== 'CHECKBOX') {
+                val = input.value;
+            } else {
+                val = input.checked
+            }
+            formData[key] = val;
+            if (!IgnoreSavingIds.includes(key)) {
+                await game.settings.set(MacroName, key, input.value);
             }
         }
-    },
-    default: "ok",
+    }
+
+    callback(formData);
+}
+
+let d = new foundry.applications.api.DialogV2({
+    window: {title: 'Gold auswürfeln'},
+    content: popupTemplate,
+    buttons: [{
+        action: 'ok',
+        icon: '<i class="fas fa-check"></i>',
+        label: "Do it!",
+        default: true,
+        callback: (_, button, __) => action(button, dialogSubmit)
+    }, {
+        action: 'cancel',
+        icon: '<i class="fas fa-times"></i>',
+        label: "Never mind",
+    }],
+    submit: () => {
+        /* ignored */
+    }
 });
 d.render(true);
