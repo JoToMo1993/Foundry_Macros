@@ -125,6 +125,7 @@ let d = new Dialog({
             callback: () => {
             }
         }
-    }
+    },
+    default: "ok",
 });
 d.render(true);

@@ -116,7 +116,8 @@ let inputDialog = new Dialog({
             label: "Berechne",
             callback: dialogPythagorasSubmit
         },
-    }
+    },
+    default: "ok",
 });
 inputDialog.render(true);
 

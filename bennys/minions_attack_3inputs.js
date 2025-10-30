@@ -200,6 +200,7 @@ if (canvas.tokens.controlled.length > 0) {
                 }
             }
         },
+        default: "ok",
         callback: dialogSubmit,
     });
     d.render(true);

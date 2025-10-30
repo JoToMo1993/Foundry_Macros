@@ -260,7 +260,8 @@ let dType = new Dialog({
             callback: () => {
             }
         }
-    }
+    },
+    default: "ok",
 });
 dType.render(true);
 
@@ -326,7 +327,8 @@ function dialogTypeSubmit() {
                 callback: () => {
                 }
             }
-        }
+        },
+        default: "ok",
     });
     dSpecific.render(true);
 }
@@ -380,7 +382,8 @@ function dialogDc() {
                 callback: () => {
                 }
             }
-        }
+        },
+        default: "ok",
     });
     dSpecific.render(true);
 }
