@@ -80,7 +80,7 @@ function printCheck(goldRoll, level, count) {
 }
 
 const popupTemplate = `
-<table>
+<table style="margin: 0">
   <tr>
     <td><label for='level'>Level</label></td>
     <td>
@@ -94,7 +94,9 @@ const popupTemplate = `
 </table>
 `;
 
-async function dialogSubmit() {
+async function dialogSubmit(formdata) {
+    const level = formdata.level;
+    const count = formdata.count;
     const goldDice = new Roll("10d10");
     const goldRoll = goldDice.roll();
     goldRoll.then(v => {

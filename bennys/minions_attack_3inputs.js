@@ -160,7 +160,7 @@ function multiply(damage_formula, number_of_minions) {
 }
 
 const popupTemplate = `
-<table>
+<table style="margin: 0">
   <tr>
     <td><label for='attack_formula'>Basis Angriffsformel</label></td>
     <td><input type='text' id='attack_formula' value='${game.settings.get(MacroName, 'attack_formula')}'></td>
@@ -175,6 +175,8 @@ const popupTemplate = `
   </tr>
 </table>
 `;
+
+const IgnoreSavingIds = []
 
 async function action(button, callback) {
     const form = button.form.elements

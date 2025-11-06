@@ -69,8 +69,8 @@ await game.settings.register(MacroName, 'z', {
     requiresReload: false,
 });
 
-const popupTemplate = `<div>
-    <table>
+const popupTemplate = `
+    <table style="margin: 0">
       <tbody>
         <tr>
           <td>
@@ -106,7 +106,7 @@ const popupTemplate = `<div>
         </tr>
       </tbody>
     </table>
-</div>`;
+`;
 
 async function dialogPythagorasSubmit(formdata) {
     let speed = formdata.speed;
@@ -231,14 +231,14 @@ async function action(button, callback) {
 }
 
 let d = new foundry.applications.api.DialogV2({
-    window: {title: 'Navigation Check'},
+    window: {title: 'Pythagoras'},
     content: popupTemplate,
     buttons: [{
         action: 'ok',
         icon: '<i class="fas fa-check"></i>',
         label: "Do it!",
         default: true,
-        callback: (_, button, __) => action(button, printCheck)
+        callback: (_, button, __) => action(button, dialogPythagorasSubmit)
     }, {
         action: 'cancel',
         icon: '<i class="fas fa-times"></i>',
