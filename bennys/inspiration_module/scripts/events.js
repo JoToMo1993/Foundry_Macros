@@ -6,8 +6,8 @@ Hooks.once("ready", () => {
     if (!game.socket) return;
 
     // Prevent duplicate handlers if the macro is run multiple times
-    if (game.modules.get("inspiration")) return;
-    game.modules.set("inspiration", true);
+    if (game.modules.get("inspiration_flag")) return;
+    game.modules.set("inspiration_flag", true);
 
     console.log("Initialize Inspiration");
 
