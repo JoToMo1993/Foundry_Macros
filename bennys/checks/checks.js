@@ -174,7 +174,8 @@ const OptionTypeValueToAbility = {
 // Coding begins here, please do not change.
 //-------------------------------------------------------------------------------------
 
-await game.settings.register('checks', 'type', {
+const MacroName = 'checks';
+await game.settings.register(MacroName, 'type', {
     name: 'Type',
     hint: 'Stores the type entered previously',
     scope: 'client',
@@ -184,7 +185,7 @@ await game.settings.register('checks', 'type', {
     filePicker: false,
     requiresReload: false,
 });
-await game.settings.register('checks', 'option', {
+await game.settings.register(MacroName, 'option', {
     name: 'Option',
     hint: 'Stores the option entered previously',
     scope: 'client',
@@ -194,7 +195,7 @@ await game.settings.register('checks', 'option', {
     filePicker: false,
     requiresReload: false,
 });
-await game.settings.register('checks', 'dc', {
+await game.settings.register(MacroName, 'dc', {
     name: 'DC',
     hint: 'Stores the dc entered previously',
     scope: 'client',
@@ -223,7 +224,10 @@ const TypeFromTypeGroup = {
     "musical-instrument": 'tool',
 }
 
-function printCheck(type, optionValue, dc) {
+function printCheck(formdata) {
+    const type = formdata.type;
+    const optionValue = formdata.optionValue;
+    const dc = formdata.dc;
     let message =
         `
             <div class="dnd5e2 chat-card request-card">
@@ -256,11 +260,11 @@ function printCheck(type, optionValue, dc) {
         blind: false
     };
 
-    ChatMessage.create(chatData, {});
+    ChatMessage.create(chatData);
 }
 
 function typeCheck(typeKey) {
-    let savedType = game.settings.get('checks', 'type');
+    let savedType = game.settings.get(MacroName, 'type');
     if (savedType === '' || savedType === undefined || savedType === null) {
         return typeKey === 'skill';
     }
@@ -268,13 +272,13 @@ function typeCheck(typeKey) {
 }
 
 const popupTemplate = `
-<table>
+<table style="margin: 0">
   <tr>
     <td><label for='type'>Type</label></td>
     <td>
-      <select name='type' id='type'>
+      <select name='type' id='type' onclick="console.log('blub')">
         ${Object.keys(Types).map(typeKey =>
-    `<option value="${typeKey}" ${typeKey === game.settings.get('checks', 'type') ? "selected" : ""}>${Types[typeKey].text}</option>`).join()}
+    `<option value="${typeKey}" ${typeKey === game.settings.get(MacroName, 'type') ? "selected" : ""}>${Types[typeKey].text}</option>`).join()}
       </select>
     </td>
   </tr>
@@ -284,60 +288,96 @@ const popupTemplate = `
       <td>
         <select name='${typeKey}' id='${typeKey}'>
           ${OptionsPerType[typeKey].map(option =>
-    `<option value="${option.value}" ${option.value === game.settings.get('checks', 'option') ? "selected" : ""}>${option.name}</option>`).join()}
+    `<option value="${option.value}" ${option.value === game.settings.get(MacroName, 'option') ? "selected" : ""}>${option.name}</option>`).join()}
         </select>
       </td>
     </tr>
   `).join('<tr></tr>')}
   <tr>
     <td><label for='dc'>DC</label></td>
-    <td><input type='number' id='dc' value='${game.settings.get('checks', 'dc')}'></td>
+    <td><input type='number' id='dc' value='${game.settings.get(MacroName, 'dc')}'></td>
   </tr>
 </table>
-<script>
-document.getElementById("type").onchange = function () {
-    const selected = document.getElementById("type").value;
-    [...document.getElementById("type").options].map(o => o.value).forEach(typeKey => {
-        let visibility = typeKey === selected ? "visible" : "collapse";
-        let sections = document.getElementsByClassName(typeKey.toLowerCase() + "-section");
-        
-        for (let i = 0; i < sections.length; i++) {
-            sections[i].style.visibility = visibility;    
-        }
-    })
-}
-</script>
 `;
 
-async function dialogSubmit() {
-    let type = document.getElementById("type").value;
-    let valueOption = document.getElementById(type).value;
-    let dc = document.getElementById("dc").value;
+async function dialogSubmit(formData) {
+    formData.optionValue = formData[formData.type];
 
     // Save to local storage
-    await game.settings.set('checks', 'type', type);
-    await game.settings.set('checks', 'option', valueOption);
-    await game.settings.set('checks', 'dc', dc);
+    await game.settings.set(MacroName, 'option', formData.optionValue);
 
-    printCheck(type, valueOption, dc);
+    printCheck(formData);
 }
 
-let d = new Dialog({
-    title: 'Check selection',
-    content: popupTemplate,
-    buttons: {
-        ok: {
-            icon: '<i class="fas fa-check"></i>',
-            label: "Do it!",
-            callback: dialogSubmit
-        },
-        cancel: {
-            icon: '<i class="fas fa-times"></i>',
-            label: "Never mind",
-            callback: () => {
-            }
+const IgnoreSavingIds = [...Object.keys(Types)]
+
+async function action(button, callback) {
+    const form = button.form.elements
+    const formData = {};
+
+    for (const [key, input] of Object.entries(form)) {
+        if (input.tagName === 'BUTTON') {
+            continue;
         }
-    },
-    default: "ok",
+        // not a numbered index
+        let properKey = '';
+        if (!/^\d+$/.test(key)) {
+            properKey = key;
+        } else {
+            console.log(input, input.id)
+            properKey = input.id
+        }
+
+        let val;
+        if (input.tagName !== 'CHECKBOX') {
+            val = input.value;
+        } else {
+            val = input.checked
+        }
+        formData[properKey] = val;
+        if (!IgnoreSavingIds.includes(properKey)) {
+            await game.settings.set(MacroName, properKey, input.value);
+        }
+    }
+
+    callback(formData);
+}
+
+let d = new foundry.applications.api.DialogV2({
+    window: {title: 'Check selection'},
+    content: popupTemplate,
+    buttons: [{
+        action: 'ok',
+        icon: '<i class="fas fa-check"></i>',
+        label: "Do it!",
+        default: true,
+        callback: (_, button, __) => action(button, dialogSubmit)
+    }, {
+        action: 'cancel',
+        icon: '<i class="fas fa-times"></i>',
+        label: "Never mind",
+    }],
+    submit: () => {
+        /* ignored */
+    }
 });
-d.render(true);
+d.render(true).then((dialog) => {
+    dialogByIds = [...dialog.element.getElementsByTagName("*")]
+        .reduce((acc, cur, _) => {
+            if (cur.id) {
+                acc[cur.id] = cur;
+            }
+            return acc;
+        }, {});
+    dialogByIds["type"].onchange = function () {
+        const selected = dialogByIds["type"].value;
+        [...dialogByIds["type"].options].map(o => o.value).forEach(typeKey => {
+            let visibility = typeKey === selected ? "visible" : "collapse";
+            let sections = dialog.element.getElementsByClassName(typeKey.toLowerCase() + "-section");
+
+            for (let i = 0; i < sections.length; i++) {
+                sections[i].style.visibility = visibility;
+            }
+        })
+    }
+});

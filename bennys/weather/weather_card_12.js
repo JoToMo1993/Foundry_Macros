@@ -363,7 +363,6 @@ function printWeather(location, season, area, weather, wind, temp, additionalInf
 
         return result;
     }).then(rollMessages => {
-        let showDice = document.getElementById("showDice").checked;
         let headerPart = createHeaderPart(location, season, area, weather, wind, temp, date);
         let additionalPart = createAdditionalPart(additionalInformation);
         let dicePart = createDicePart(showDice, rollMessages);
@@ -524,8 +523,10 @@ async function getTemp(season) {
 }
 
 let testMode = false;
+let showDice = false;
+const MacroName = 'weather_macro';
 
-await game.settings.register('weather_macro', 'location', {
+await game.settings.register(MacroName, 'location', {
     name: 'Location',
     hint: 'Stores the location entered previously',
     scope: 'client',
@@ -535,7 +536,7 @@ await game.settings.register('weather_macro', 'location', {
     filePicker: false,
     requiresReload: false,
 });
-await game.settings.register('weather_macro', 'season', {
+await game.settings.register(MacroName, 'season', {
     name: 'Season',
     hint: 'Stores the season entered previously',
     scope: 'client',
@@ -545,7 +546,7 @@ await game.settings.register('weather_macro', 'season', {
     filePicker: false,
     requiresReload: false,
 });
-await game.settings.register('weather_macro', 'area', {
+await game.settings.register(MacroName, 'area', {
     name: 'Area',
     hint: 'Stores the area entered previously',
     scope: 'client',
@@ -555,7 +556,7 @@ await game.settings.register('weather_macro', 'area', {
     filePicker: false,
     requiresReload: false,
 });
-await game.settings.register('weather_macro', 'showDice', {
+await game.settings.register(MacroName, 'showDice', {
     name: 'Show Dice',
     hint: 'Stores the show dice selection entered previously',
     scope: 'client',
@@ -565,7 +566,7 @@ await game.settings.register('weather_macro', 'showDice', {
     filePicker: false,
     requiresReload: false,
 });
-await game.settings.register('weather_macro', 'date', {
+await game.settings.register(MacroName, 'date', {
     name: 'Date',
     hint: 'Stores the date entered previously',
     scope: 'client',
@@ -577,11 +578,11 @@ await game.settings.register('weather_macro', 'date', {
 });
 
 const popupTemplate = `
-<table>
+<table style="margin: 0">
   <tr>
     <td><label for='date'>Date</label></td>
     <td>
-      <input id="date" value="${game.settings.get('weather_macro', 'date')}" />
+      <input id="date" value="${game.settings.get(MacroName, 'date')}" />
     </td>
   </tr>
   <tr>
@@ -605,10 +606,10 @@ const popupTemplate = `
       </select>
     </td>
   </tr>
-  <tr style="visibility: ${game.settings.get('weather_macro', 'location') !== 'Moderate' ? 'hidden' : 'visible'}">
+  <tr style="visibility: ${game.settings.get(MacroName, 'location') !== 'Moderate' ? 'hidden' : 'visible'}">
     <td><label for='season'>Season</label></td>
     <td>
-      <select name='season' id='season' ${game.settings.get('weather_macro', 'location') !== 'Moderate' ? 'disabled' : ''}>
+      <select name='season' id='season' ${game.settings.get(MacroName, 'location') !== 'Moderate' ? 'disabled' : ''}>
         <option value='Spring' ${optionSelected('season', 'Spring')}>Spring</option>
         <option value='Summer' ${optionSelected('season', 'Summer')}>Summer</option>
         <option value='Fall' ${optionSelected('season', 'Fall')}>Fall</option>
@@ -618,7 +619,7 @@ const popupTemplate = `
   </tr>
   <tr>
     <td><label for='showDice'>Show dice</label></td>
-    <td><input type='checkbox' id='showDice' value='showDice' ${game.settings.get('weather_macro', 'showDice') ? 'checked' : ''}></td>
+    <td><input type='checkbox' id='showDice' value='showDice' ${game.settings.get(MacroName, 'showDice') ? 'checked' : ''}></td>
   </tr>
   <tr>
     <td><label for='test'>Enable test-mode</label></td>
@@ -641,49 +642,27 @@ const popupTemplate = `
     <td><input type='number' id='temperature' value='0'></td>
   </tr>
 </table>
-<script>
-document.getElementById("location").onchange = function () {
-    document.getElementById("season").disabled = document.getElementById("location").value !== "Moderate";
-    document.getElementById("season").parentElement.parentElement.style.visibility
-        = document.getElementById("location").value !== "Moderate" ? "hidden" : "visible";
-}
-document.getElementById("test").onchange = function () {
-    // toggle test-mode
-    let visibility = document.getElementById("test").checked ? "visible" : "collapse";
-    let inputs = document.getElementsByClassName("test-mode-input");
-    for (let i = 0; i < inputs.length; i++) {
-        inputs[i].style.visibility = visibility;    
-    }
-}
-</script>
 `;
 
 function optionSelected(type, value) {
-    if (game.settings.get('weather_macro', type) === value) {
+    if (game.settings.get(MacroName, type) === value) {
         return 'selected="selected"';
     } else {
         return '';
     }
 }
 
-async function dialogSubmit() {
-    testMode = document.getElementById("test").checked;
-    showDice = document.getElementById("showDice").checked;
-    let date = document.getElementById("date").value;
-    let location = document.getElementById("location").value;
-    let season = document.getElementById("season").value;
+async function dialogSubmit(formdata) {
+    testMode = formdata.test;
+    showDice = formdata.showDice;
+    let date = formdata.date;
+    let location = formdata.location;
+    let season = formdata.season;
     let locationSeason = location === "Moderate" ? season : location;
-    let area = document.getElementById("area").value;
-
-    // Save to local storage
-    await game.settings.set('weather_macro', 'date', date);
-    await game.settings.set('weather_macro', 'location', location);
-    await game.settings.set('weather_macro', 'season', season);
-    await game.settings.set('weather_macro', 'area', area);
-    await game.settings.set('weather_macro', 'showDice', showDice);
+    let area = formdata.area;
 
     let tempPromise = testMode ?
-        new Promise((resolve => resolve(parseInt(document.getElementById("temperature").value)))) :
+        new Promise((resolve => resolve(parseInt(formdata.temperature)))) :
         getTemp(locationSeason);
     let windPromise = getWind(area);
     let weatherPromise = tempPromise.then(temp => getWeather(locationSeason, temp));
@@ -725,25 +704,77 @@ async function dialogSubmit() {
         });
 }
 
-let d = new Dialog({
-    title: 'Weather Select',
-    content: popupTemplate,
-    buttons: {
-        ok: {
-            icon: '<i class="fas fa-check"></i>',
-            label: "Do it!",
-            callback: dialogSubmit
-        },
-        cancel: {
-            icon: '<i class="fas fa-times"></i>',
-            label: "Never mind",
-            callback: () => {
+const IgnoreSavingIds = [
+    'test',
+    'weather',
+    'wind1',
+    'wind2',
+    'temperature',
+]
+
+async function action(button, callback) {
+    const form = button.form.elements
+    const formData = {};
+
+    for (const [key, input] of Object.entries(form)) {
+        // not a numbered index
+        if (!/^\d+$/.test(key)) {
+            let val;
+            if (input.tagName !== 'CHECKBOX') {
+                val = input.value;
+            } else {
+                val = input.checked
+            }
+            formData[key] = val;
+            if (!IgnoreSavingIds.includes(key)) {
+                await game.settings.set(MacroName, key, input.value);
             }
         }
-    },
-    default: "ok",
+    }
+
+    callback(formData);
+}
+
+let d = new foundry.applications.api.DialogV2({
+    window: {title: 'Weather Select'},
+    content: popupTemplate,
+    buttons: [{
+        action: 'ok',
+        icon: '<i class="fas fa-check"></i>',
+        label: "Do it!",
+        default: true,
+        callback: (_, button, __) => action(button, dialogSubmit)
+    }, {
+        action: 'cancel',
+        icon: '<i class="fas fa-times"></i>',
+        label: "Never mind",
+    }],
+    submit: () => {
+        /* ignored */
+    }
 });
-d.render(true);
+d.render(true).then((dialog) => {
+    dialogByIds = [...dialog.element.getElementsByTagName("*")]
+        .reduce((acc, cur, _) => {
+            if (cur.id) {
+                acc[cur.id] = cur;
+            }
+            return acc;
+        }, {});
+    dialogByIds["location"].onchange = function () {
+        dialogByIds["season"].disabled = dialogByIds["location"].value !== "Moderate";
+        dialogByIds["season"].parentElement.parentElement.style.visibility
+            = dialogByIds["location"].value !== "Moderate" ? "hidden" : "visible";
+    }
+    dialogByIds["test"].onchange = function () {
+        // toggle test-mode
+        let visibility = dialogByIds["test"].checked ? "visible" : "collapse";
+        let inputs = dialog.element.getElementsByClassName("test-mode-input");
+        for (let i = 0; i < inputs.length; i++) {
+            inputs[i].style.visibility = visibility;
+        }
+    }
+});
 
 const LocationIcons = {
     "Moderate": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABhWlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw0AYht+mSou0iNhBxCFDdWpBVMRRqlgEC6Wt0KqDyaV/0MSQpLg4Cq4FB38Wqw4uzro6uAqC4A+Is4OToouU+F1SaBHjwd09vPe9L3ffAUKzxlSzZxxQNcvIJBNivrAiBl4RRBgDtMYkZuqp7EIOnuPrHj6+38V5lnfdnyOsFE0G+ETiWaYbFvE68fSmpXPeJ46wiqQQnxPHDLog8SPXZZffOJcdFnhmxMhl5ogjxGK5i+UuZhVDJZ4ijiqqRvlC3mWF8xZntVZn7XvyF4aK2nKW6zRHkMQiUkhDhIw6qqjBQpx2jRQTGTpPePiHHX+aXDK5qmDkmMcGVEiOH/wPfvfWLE1OuEmhBND7Ytsfo0BgF2g1bPv72LZbJ4D/GbjSOv6NJjDzSXqjo0WPgP5t4OK6o8l7wOUOMPSkS4bkSH6aQqkEvJ/RNxWAwVugb9XtW/scpw9Ajnq1dAMcHAJjZcpe83h3sLtv/9a0+/cDdSByqBZzSuQAAAAJcEhZcwAALiMAAC4jAXilP3YAAAAHdElNRQfoCA0RECHvlmsbAAAAGXRFWHRDb21tZW50AENyZWF0ZWQgd2l0aCBHSU1QV4EOFwAAACtJREFUSMftzUENADAIBLBjavGHQVTsQdIaaPXkq5cIBAKBQCAQCASCG8EC9oQBW/nZewsAAAAASUVORK5CYII=",
