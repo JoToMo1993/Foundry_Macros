@@ -9,7 +9,10 @@ Hooks.once("ready", () => {
     if (game.modules.get("inspiration")) return;
     game.modules.set("inspiration", true);
 
+    console.log("Initialize Inspiration");
+
     game.socket.on(SOCKET_NAME, async (data) => {
+        console.log("Inspiration:", data);
         if (data.type === "openSelectionDialog" && !game.user.isGM) {
             openSelectionDialog(data.targets);
         }
