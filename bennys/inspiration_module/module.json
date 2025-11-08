@@ -1,0 +1,18 @@
+{
+  "id": "inspiration",
+  "title": "Inspiration",
+  "description": "A simple module created to determine the player(s) to get inspiration.",
+  "authors": [
+    {
+      "name": "JoToMo"
+    }
+  ],
+  "version": "0.0.1",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "scripts": [
+    "scripts/events.js"
+  ]
+}
