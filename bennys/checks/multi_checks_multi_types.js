@@ -229,7 +229,7 @@ function Check(type, optionValue, dc) {
     this.dc = dc;
 }
 
-const popupTypeTemplate = `<table>
+const popupTypeTemplate = `<table style="margin: 0">
       <thead>
         <tr><th>Types</th></tr>
       </thead>
@@ -245,31 +245,29 @@ const popupTypeTemplate = `<table>
     </table>`;
 
 let selectedTypes = [];
-let dType = new Dialog({
-    title: 'Check selection',
+let dType = new foundry.applications.api.DialogV2({
+    window: {title: 'Check selection'},
     content: popupTypeTemplate,
-    buttons: {
-        ok: {
-            icon: '<i class="fas fa-check"></i>',
-            label: "Next!",
-            callback: dialogTypeSubmit
-        },
-        cancel: {
-            icon: '<i class="fas fa-times"></i>',
-            label: "Never mind",
-            callback: () => {
-            }
-        }
-    },
-    default: "ok",
+    buttons: [{
+        action: 'ok',
+        icon: '<i class="fas fa-check"></i>',
+        label: "Next!",
+        default: true,
+        callback: (_, button, __) => dialogTypeSubmit()
+    }, {
+        action: 'cancel',
+        icon: '<i class="fas fa-times"></i>',
+        label: "Never mind",
+    }],
+    submit: () => {
+        /* ignored */
+    }
 });
 dType.render(true);
 
 function optionForTypeAndRow(rowNumber, typeKey) {
     const options = OptionsPerType[typeKey];
-    console.log(options);
     const length = options.length;
-    console.log(length);
 
     if (rowNumber >= length) {
         return '<td></td>';
@@ -285,16 +283,12 @@ function optionForTypeAndRow(rowNumber, typeKey) {
 
 function popupSpecificTemplate() {
     selectedOptions = selectedTypes.map(type => OptionsPerType[type]);
-    console.log(selectedOptions);
     selectedOptionsLengths = selectedOptions.map(selectedOption => selectedOption.length);
-    console.log(selectedOptionsLengths);
     let maxRows = 0;
     selectedOptionsLengths.forEach(selectedOption => maxRows = Math.max(maxRows, selectedOption))
-    console.log(maxRows);
     const indexes = [...Array(maxRows).keys()];
-    console.log(indexes);
 
-    return `<table>
+    return `<table style="margin: 0">
       <thead>
         <tr>
         ${selectedTypes.map(typeKey => `<th>${Types[typeKey].text}</th>`).join('')}
@@ -310,25 +304,24 @@ function popupSpecificTemplate() {
 
 function dialogTypeSubmit() {
     selectedTypes = Object.keys(Types).filter((type) => document.getElementById(type + '-typeSelector').checked);
-    console.log(selectedTypes)
 
-    let dSpecific = new Dialog({
-        title: 'Check selection (Teil 2)',
+    let dSpecific = new foundry.applications.api.DialogV2({
+        window: {title: 'Check selection (Teil 2)'},
         content: popupSpecificTemplate(),
-        buttons: {
-            ok: {
-                icon: '<i class="fas fa-check"></i>',
-                label: "Next!",
-                callback: dialogDc
-            },
-            cancel: {
-                icon: '<i class="fas fa-times"></i>',
-                label: "Never mind",
-                callback: () => {
-                }
-            }
-        },
-        default: "ok",
+        buttons: [{
+            action: 'ok',
+            icon: '<i class="fas fa-check"></i>',
+            label: "Next!",
+            default: true,
+            callback: (_, button, __) => dialogDc()
+        }, {
+            action: 'cancel',
+            icon: '<i class="fas fa-times"></i>',
+            label: "Never mind",
+        }],
+        submit: () => {
+            /* ignored */
+        }
     });
     dSpecific.render(true);
 }
@@ -336,7 +329,7 @@ function dialogTypeSubmit() {
 let checks = [];
 
 function popupCheckTemplate() {
-    return `<table>
+    return `<table style="margin: 0">
       ${selectedTypes.map(type => `<thead>
         <tr><th>${Types[type].text}</th><th>DC</th></tr>
       </thead>
@@ -365,25 +358,23 @@ function dialogDc() {
             .forEach(element => checks.push(new Check(type, element.value, undefined)));
     });
 
-    console.log(checks);
-
-    let dSpecific = new Dialog({
-        title: 'Check selection (Teil 3)',
+    let dSpecific = new foundry.applications.api.DialogV2({
+        window: {title: 'Check selection (Teil 3)'},
         content: popupCheckTemplate(),
-        buttons: {
-            ok: {
-                icon: '<i class="fas fa-check"></i>',
-                label: "Next!",
-                callback: dialogSubmit
-            },
-            cancel: {
-                icon: '<i class="fas fa-times"></i>',
-                label: "Never mind",
-                callback: () => {
-                }
-            }
-        },
-        default: "ok",
+        buttons: [{
+            action: 'ok',
+            icon: '<i class="fas fa-check"></i>',
+            label: "Next!",
+            default: true,
+            callback: (_, button, __) => dialogSubmit()
+        }, {
+            action: 'cancel',
+            icon: '<i class="fas fa-times"></i>',
+            label: "Never mind",
+        }],
+        submit: () => {
+            /* ignored */
+        }
     });
     dSpecific.render(true);
 }
