@@ -32,7 +32,6 @@ function openSelectionDialog(targets) {
             callback: () => handleSelection(t)
         };
     }
-    buttons[0].default = true
 
     new foundry.applications.api.DialogV2({
         window: {title: "Select a Player"},

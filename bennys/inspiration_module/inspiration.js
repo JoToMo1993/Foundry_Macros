@@ -1,4 +1,5 @@
 // --- MAIN EXECUTION ---
+const SOCKET_NAME = "module.inspiration";
 if (game.user.isGM) {
     // Build target list dynamically (non-GM users)
     const targets = game.users.filter(u => !u.isGM).map(u => u.name);
