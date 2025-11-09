@@ -29,6 +29,7 @@ function openSelectionDialog(targets) {
     const buttons = {};
     for (const t of targets) {
         buttons[t] = {
+            action: t,
             label: t,
             callback: () => handleSelection(t)
         };
