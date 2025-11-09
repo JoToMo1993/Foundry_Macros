@@ -717,18 +717,27 @@ async function action(button, callback) {
     const formData = {};
 
     for (const [key, input] of Object.entries(form)) {
+        if (input.tagName === 'BUTTON') {
+            continue;
+        }
         // not a numbered index
+        let properKey = '';
         if (!/^\d+$/.test(key)) {
-            let val;
-            if (input.tagName !== 'CHECKBOX') {
-                val = input.value;
-            } else {
-                val = input.checked
-            }
-            formData[key] = val;
-            if (!IgnoreSavingIds.includes(key)) {
-                await game.settings.set(MacroName, key, input.value);
-            }
+            properKey = key;
+        } else {
+            console.log(input, input.id)
+            properKey = input.id
+        }
+
+        let val;
+        if (input.tagName !== 'CHECKBOX') {
+            val = input.value;
+        } else {
+            val = input.checked
+        }
+        formData[properKey] = val;
+        if (!IgnoreSavingIds.includes(properKey)) {
+            await game.settings.set(MacroName, properKey, input.value);
         }
     }
 
