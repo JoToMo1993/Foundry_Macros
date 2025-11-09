@@ -12,13 +12,8 @@ Hooks.once("ready", () => {
     console.log("Initialize Inspiration");
 
     game.socket.on(SOCKET_NAME, async (data) => {
-        console.log("Inspiration:", data);
         if (data.type === "openSelectionDialog" && !game.user.isGM) {
             openSelectionDialog(data['targets']);
-        }
-
-        if (data.type === "playerSelected" && game.user.isGM) {
-            notifyGM(data.from, data.to);
         }
     });
 });
@@ -44,21 +39,16 @@ function openSelectionDialog(targets) {
 function handleSelection(targetName) {
     const playerUser = game.user;
 
-    game.socket.emit(SOCKET_NAME, {
-        type: "playerSelected",
-        from: playerUser.name,
-        to: targetName
-    });
-
-    ui.notifications.info(`You selected ${targetName}.`);
+    ui.notifications.info(`Du hast ${targetName} gewählt.`);
+    notifyGM(playerUser.name, targetName);
 }
 
 // --- FUNCTION: GM receives and posts message ---
 async function notifyGM(fromName, toName) {
-    const content = `<p><strong>${fromName}</strong> hat <strong>${toName}</strong> gewählt.</p>`;
+    const content = `<p><i>${fromName}</i> hat <strong>${toName}</strong> gewählt.</p>`;
     ChatMessage.create({
         content,
         whisper: ChatMessage.getWhisperRecipients("GM"),
-        speaker: {alias: "Selection Notification"}
+        speaker: {alias: "Inspirationsauswahl"}
     });
 }
