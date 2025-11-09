@@ -112,14 +112,14 @@ async function action(button, callback) {
         }
 
         let val;
-        if (input.tagName !== 'CHECKBOX') {
+        if (!input.type || input.type.toLowerCase() !== 'checkbox') {
             val = input.value;
         } else {
             val = input.checked
         }
         formData[properKey] = val;
         if (!IgnoreSavingIds.includes(properKey)) {
-            await game.settings.set(MacroName, properKey, input.value);
+            await game.settings.set(MacroName, properKey, val);
         }
     }
 
