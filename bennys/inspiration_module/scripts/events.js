@@ -45,7 +45,7 @@ function handleSelection(targetName) {
 
 // --- FUNCTION: GM receives and posts message ---
 async function notifyGM(fromName, toName) {
-    const content = `<p>${fromName} hat <h1 style="margin: 0; padding: 0">${toName}</h1> gewählt.</p>`;
+    const content = `<span>${fromName} hat gewählt:</span><h1 style="margin: 0; padding: 0">${toName}</h1>`;
     ChatMessage.create({
         content,
         whisper: ChatMessage.getWhisperRecipients("GM"),
