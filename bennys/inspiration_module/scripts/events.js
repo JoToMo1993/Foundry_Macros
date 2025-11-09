@@ -14,7 +14,7 @@ Hooks.once("ready", () => {
     game.socket.on(SOCKET_NAME, async (data) => {
         console.log("Inspiration:", data);
         if (data.type === "openSelectionDialog" && !game.user.isGM) {
-            openSelectionDialog(data.targets);
+            openSelectionDialog(data['targets']);
         }
 
         if (data.type === "playerSelected" && game.user.isGM) {
@@ -25,6 +25,7 @@ Hooks.once("ready", () => {
 
 // --- FUNCTION: Open Popup for Players ---
 function openSelectionDialog(targets) {
+    console.log("openSelectionDialog", targets);
     const buttons = {};
     for (const t of targets) {
         buttons[t] = {
@@ -32,6 +33,7 @@ function openSelectionDialog(targets) {
             callback: () => handleSelection(t)
         };
     }
+    console.log("openSelectionDialog", buttons);
 
     new foundry.applications.api.DialogV2({
         window: {title: "Select a Player"},
