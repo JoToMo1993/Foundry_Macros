@@ -25,17 +25,17 @@ Hooks.once("ready", () => {
 
 // --- FUNCTION: Open Popup for Players ---
 function openSelectionDialog(targets) {
-    const buttons = targets.map((target) => {
+    const buttons = targets.filter(t => t !== game.user.name).map((t) => {
         return {
-            action: target,
-            label: target,
-            callback: () => handleSelection(target),
+            action: t,
+            label: t,
+            callback: () => handleSelection(t),
         }
     });
 
     new foundry.applications.api.DialogV2({
-        window: {title: "Select a Player"},
-        content: `<p>Please choose one of the following players:</p>`,
+        window: {title: "Wer soll Inspiration bekommen?"},
+        content: `<p>Wähle einen der Spieler aus:</p>`,
         buttons,
     }).render({force: true});
 }
@@ -55,7 +55,7 @@ function handleSelection(targetName) {
 
 // --- FUNCTION: GM receives and posts message ---
 async function notifyGM(fromName, toName) {
-    const content = `<p><strong>${fromName}</strong> selected <strong>${toName}</strong>.</p>`;
+    const content = `<p><strong>${fromName}</strong> hat <strong>${toName}</strong> gewählt.</p>`;
     ChatMessage.create({
         content,
         whisper: ChatMessage.getWhisperRecipients("GM"),
