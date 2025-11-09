@@ -25,19 +25,18 @@ Hooks.once("ready", () => {
 
 // --- FUNCTION: Open Popup for Players ---
 function openSelectionDialog(targets) {
-    console.log("openSelectionDialog", targets);
     const buttons = targets.map((target) => {
         return {
+            action: target,
             label: target,
             callback: () => handleSelection(target),
         }
     });
-    console.log("openSelectionDialog", buttons);
 
     new foundry.applications.api.DialogV2({
         window: {title: "Select a Player"},
         content: `<p>Please choose one of the following players:</p>`,
-        buttons: buttons,
+        buttons,
     }).render({force: true});
 }
 
