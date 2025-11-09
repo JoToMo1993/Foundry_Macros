@@ -1,5 +1,5 @@
 // --- CONFIGURATION ---
-const SOCKET_NAME = "module.inspirationSocket";
+const SOCKET_NAME = "module.inspiration";
 
 // --- INITIALIZE SOCKET HANDLER ---
 Hooks.once("ready", () => {
