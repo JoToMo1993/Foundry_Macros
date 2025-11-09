@@ -39,7 +39,7 @@ function openSelectionDialog(targets) {
     new foundry.applications.api.DialogV2({
         window: {title: "Select a Player"},
         content: `<p>Please choose one of the following players:</p>`,
-        buttons,
+        buttons: buttons,
     }).render({force: true});
 }
 
