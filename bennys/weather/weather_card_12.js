@@ -362,7 +362,7 @@ function printWeather(location, season, area, weather, wind, temp, additionalInf
         rollMessages.forEach(rollMessage => result[rollMessage.key] = rollMessage.value);
 
         return result;
-    }).then(rollMessages => {
+    }).then(async (rollMessages) => {
         let headerPart = createHeaderPart(location, season, area, weather, wind, temp, date);
         let additionalPart = createAdditionalPart(additionalInformation);
         let dicePart = createDicePart(showDice, rollMessages);
@@ -375,7 +375,9 @@ function printWeather(location, season, area, weather, wind, temp, additionalInf
             blind: false
         };
 
-        ChatMessage.create(chatData, {});
+        await game.settings.set(MacroName, 'lastWeather', chatData);
+
+        ChatMessage.create(chatData);
     });
 }
 
@@ -576,6 +578,16 @@ await game.settings.register(MacroName, 'date', {
     filePicker: false,
     requiresReload: false,
 });
+await game.settings.register(MacroName, 'lastWeather', {
+    name: 'Last Weather',
+    hint: 'Stores the last result',
+    scope: 'client',
+    config: false,
+    type: Object,
+    default: {},
+    filePicker: false,
+    requiresReload: false,
+});
 
 const popupTemplate = `
 <table style="margin: 0">
@@ -757,6 +769,12 @@ let d = new foundry.applications.api.DialogV2({
         action: 'cancel',
         icon: '<i class="fas fa-times"></i>',
         label: "Never mind",
+    }, {
+        action: 'reprint',
+        label: 'Again',
+        callback: (_, button, __) => {
+            ChatMessage.create(game.settings.get(MacroName, 'lastWeather'));
+        }
     }],
     submit: () => {
         /* ignored */
